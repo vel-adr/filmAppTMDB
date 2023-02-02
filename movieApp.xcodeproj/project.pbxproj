@@ -19,6 +19,7 @@
 		E962267F298AAE5600A9DCA8 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E962267E298AAE5600A9DCA8 /* APIService.swift */; };
 		E9622681298AB68B00A9DCA8 /* MovieDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9622680298AB68B00A9DCA8 /* MovieDetailModel.swift */; };
 		E9622684298B3F8600A9DCA8 /* UIImageView+LoadFromURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9622683298B3F8600A9DCA8 /* UIImageView+LoadFromURL.swift */; };
+		E9622686298B79BC00A9DCA8 /* MovieCastResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9622685298B79BC00A9DCA8 /* MovieCastResponse.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		E962267E298AAE5600A9DCA8 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		E9622680298AB68B00A9DCA8 /* MovieDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetailModel.swift; sourceTree = "<group>"; };
 		E9622683298B3F8600A9DCA8 /* UIImageView+LoadFromURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImageView+LoadFromURL.swift"; sourceTree = "<group>"; };
+		E9622685298B79BC00A9DCA8 /* MovieCastResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCastResponse.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 			children = (
 				E9622679298AAB0100A9DCA8 /* MovieDetailResponse.swift */,
 				E9622680298AB68B00A9DCA8 /* MovieDetailModel.swift */,
+				E9622685298B79BC00A9DCA8 /* MovieCastResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 				E962267A298AAB0100A9DCA8 /* MovieDetailResponse.swift in Sources */,
 				E9622684298B3F8600A9DCA8 /* UIImageView+LoadFromURL.swift in Sources */,
 				E962265F2987FE6B00A9DCA8 /* AppDelegate.swift in Sources */,
+				E9622686298B79BC00A9DCA8 /* MovieCastResponse.swift in Sources */,
 				E9622681298AB68B00A9DCA8 /* MovieDetailModel.swift in Sources */,
 				E96226772989923600A9DCA8 /* CastCollectionViewCell.swift in Sources */,
 				E96226612987FE6B00A9DCA8 /* SceneDelegate.swift in Sources */,

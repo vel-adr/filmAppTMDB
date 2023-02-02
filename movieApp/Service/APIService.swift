@@ -9,6 +9,7 @@ import Foundation
 
 protocol APIServiceDelegate {
     func didUpdateMovie(movie: MovieDetailModel)
+    func didUpdateCast(casts: [CastResponse])
 }
 
 class APIService {
@@ -41,6 +42,37 @@ class APIService {
                             
                             let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.poster_path ?? "", title: decoded.title, releaseDate: decoded.release_date, genre: genre, duration: "\(decoded.runtime ?? 0)", overview: decoded.overview ?? "")
                             self.delegate?.didUpdateMovie(movie: movie)
+                        }
+                        catch {
+                            print(error.localizedDescription)
+                        }
+                    }
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func fetchCast(query: String) {
+        let urlString = baseURL + query
+        
+        if let url = URL(string: urlString) {
+            let session = URLSession(configuration: .default)
+            let task = session.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    print("Error fetching data. \(error.localizedDescription)")
+                    return
+                }
+                
+                if let data = data {
+                    DispatchQueue.main.async {
+                        do {
+                            let decoded = try JSONDecoder().decode(MovieCastResponse.self, from: data)
+                            var casts: [CastResponse] = []
+                            for item in decoded.cast {
+                                casts.append(item)
+                            }
+                            self.delegate?.didUpdateCast(casts: casts)
                         }
                         catch {
                             print(error.localizedDescription)

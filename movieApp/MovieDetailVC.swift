@@ -10,6 +10,7 @@ import UIKit
 class MovieDetailVC: UIViewController {
     
     var apiService = APIService()
+    var movieCasts: [CastResponse] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +20,7 @@ class MovieDetailVC: UIViewController {
         setupConstraints()
         apiService.delegate = self
         apiService.fetchData(query: "/movie/291805?api_key=04f99ab56e8a480fe907ad4fed4808aa&language=en-US")
+        apiService.fetchCast(query: "/movie/291805/credits?api_key=04f99ab56e8a480fe907ad4fed4808aa&language=en-US")
     }
     
     private func setupViews() {
@@ -229,6 +231,13 @@ class MovieDetailVC: UIViewController {
 }
 
 extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, APIServiceDelegate {
+    func didUpdateCast(casts: [CastResponse]) {
+        DispatchQueue.main.async {
+            self.movieCasts = casts
+            self.castCollectionView.reloadData()
+        }
+    }
+    
     func didUpdateMovie(movie: MovieDetailModel) {
         DispatchQueue.main.async {
             self.itemImage.load(from: "https://image.tmdb.org/t/p/w500\(movie.poster_path)")
@@ -241,11 +250,15 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        return movieCasts.count >= 10 ? 10 : movieCasts.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? CastCollectionViewCell {
+            cell.castImage.load(from: "https://image.tmdb.org/t/p/w500\(movieCasts[indexPath.row].profile_path ?? "")")
+            cell.castNameLabel.text = movieCasts[indexPath.row].name
+            cell.characterNameLabel.text = movieCasts[indexPath.row].character
+            
             return cell
         } else {
             return UICollectionViewCell()
