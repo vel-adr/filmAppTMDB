@@ -9,12 +9,16 @@ import UIKit
 
 class MovieDetailVC: UIViewController {
     
+    var apiService = APIService()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
         setupViews()
         setupConstraints()
+        apiService.delegate = self
+        apiService.fetchData(query: "/movie/291805?api_key=04f99ab56e8a480fe907ad4fed4808aa&language=en-US")
     }
     
     private func setupViews() {
@@ -109,7 +113,7 @@ class MovieDetailVC: UIViewController {
     
     lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Lorem Ipsum Dolor Sit Amet"
+        label.text = "Title"
         label.font = UIFont.preferredFont(forTextStyle: .title1)
         label.font = UIFont.boldSystemFont(ofSize: label.font.pointSize)
         label.numberOfLines = 0
@@ -131,7 +135,7 @@ class MovieDetailVC: UIViewController {
     
     lazy var durationLabel: UILabel = {
         let label = UILabel()
-        label.text = "2h 19m"
+        label.text = "xxh xxm"
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -141,7 +145,7 @@ class MovieDetailVC: UIViewController {
     
     lazy var genreLabel: UILabel = {
         let label = UILabel()
-        label.text = "Drama, Thriller, Comedy"
+        label.text = "Genre"
         label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -181,7 +185,7 @@ class MovieDetailVC: UIViewController {
     
     lazy var overviewLabel: UILabel = {
         let label = UILabel()
-        label.text = "Queen Ramonda, Shuri, M’Baku, Okoye and the Dora Milaje fight to protect their nation from intervening world powers in the wake of King T’Challa’s death. As the Wakandans strive to embrace their next chapter, the heroes must band together with the help of War Dog Nakia and Everett Ross and forge a new path for the kingdom of Wakanda."
+        label.text = "Overview"
         label.numberOfLines = 0
         label.font = UIFont.preferredFont(forTextStyle: .body)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -224,7 +228,18 @@ class MovieDetailVC: UIViewController {
     }()
 }
 
-extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, APIServiceDelegate {
+    func didUpdateMovie(movie: MovieDetailModel) {
+        DispatchQueue.main.async {
+            self.itemImage.load(from: "https://image.tmdb.org/t/p/w500\(movie.poster_path)")
+            self.titleLabel.text = movie.title
+            self.releaseDateLabel.text = movie.releaseDate
+            self.genreLabel.text = movie.genre
+            self.durationLabel.text = movie.duration
+            self.overviewLabel.text = movie.overview
+        }
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 10
     }
