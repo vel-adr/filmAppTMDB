@@ -10,6 +10,7 @@ import UIKit
 class FirstScreenVC: UIViewController {
     
     var popularMovies: [Result] = []
+    var trendingMovies: [Result] = []
     var apiService = APIService()
     
     override func viewDidLoad() {
@@ -18,7 +19,8 @@ class FirstScreenVC: UIViewController {
         view.backgroundColor = .systemBackground
         setupSubViews()
         apiService.popularDelegate = self
-        apiService.fetchPopular(query: "/movie/popular?language=en-US&page=1")
+        apiService.fetchPopular()
+        apiService.fetchTrending()
     }
     
     private func setupSubViews() {
@@ -118,6 +120,13 @@ class FirstScreenVC: UIViewController {
 }
 
 extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, APIServiceGeneralMoviesDelegate {
+    func didUpdateTrendingMovies(movies: [Result]) {
+        DispatchQueue.main.async {
+            self.trendingMovies = movies
+            self.trendingCollectionView.reloadData()
+        }
+    }
+    
     func didUpdatePopularMovies(movies: [Result]) {
         DispatchQueue.main.async {
             self.popularMovies = movies
@@ -125,13 +134,19 @@ extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowL
         }
     }
     
+    
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let destination = MovieDetailVC()
+
         if collectionView == popularCollectionView {
-            let destination = MovieDetailVC()
             destination.movieId = popularMovies[indexPath.row].id
-            
-            navigationController?.pushViewController(destination, animated: true)
+        } else {
+            destination.movieId = trendingMovies[indexPath.row].id
         }
+        
+        navigationController?.pushViewController(destination, animated: true)
+
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -141,16 +156,19 @@ extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowL
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == popularCollectionView {
             return popularMovies.count
+        } else if collectionView == trendingCollectionView {
+            return trendingMovies.count
         }
         return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCell", for: indexPath) as? MovieCollectionViewCell
+        
         if collectionView == popularCollectionView {
             cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(popularMovies[indexPath.row].poster_path ?? "")")
-        } else {
-            cell?.imageView.image = UIImage(named: "tes")
+        } else if collectionView == trendingCollectionView {
+            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(trendingMovies[indexPath.row].poster_path ?? "")")
         }
         
         return cell ?? UICollectionViewCell()

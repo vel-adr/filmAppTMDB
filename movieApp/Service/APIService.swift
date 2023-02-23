@@ -14,6 +14,7 @@ protocol APIServiceDelegate {
 
 protocol APIServiceGeneralMoviesDelegate {
     func didUpdatePopularMovies(movies: [Result])
+    func didUpdateTrendingMovies(movies: [Result])
 }
 
 class APIService {
@@ -107,8 +108,8 @@ class APIService {
         }
     }
     
-    public func fetchPopular(query: String) {
-        let urlString = baseURL + query + "&api_key=\(apiKey)"
+    public func fetchPopular() {
+        let urlString = baseURL + "/movie/popular?language=en-US&page=1&api_key=\(apiKey)"
         
         if let url = URL(string: urlString) {
             let session = URLSession(configuration: .default)
@@ -128,6 +129,38 @@ class APIService {
                             }
                             
                             self.popularDelegate?.didUpdatePopularMovies(movies: movies)
+                        }
+                        catch {
+                            print(error.localizedDescription)
+                        }
+                    }
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func fetchTrending() {
+        let urlString = baseURL + "/trending/movie/week?api_key=\(apiKey)"
+        
+        if let url = URL(string: urlString) {
+            let session = URLSession(configuration: .default)
+            let task = session.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    print("Error fetching data. \(error.localizedDescription)")
+                    return
+                }
+                
+                if let data = data {
+                    DispatchQueue.main.async {
+                        do {
+                            let decoded = try JSONDecoder().decode(MovieResponse.self, from: data)
+                            var movies: [Result] = []
+                            for item in decoded.results {
+                                movies.append(item)
+                            }
+                            
+                            self.popularDelegate?.didUpdateTrendingMovies(movies: movies)
                         }
                         catch {
                             print(error.localizedDescription)
