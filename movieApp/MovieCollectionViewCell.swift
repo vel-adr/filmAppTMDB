@@ -34,6 +34,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
         let img = UIImageView()
         img.contentMode = .scaleAspectFill
         img.clipsToBounds = true
+        img.layer.cornerRadius = 8
         
         return img
     }()
