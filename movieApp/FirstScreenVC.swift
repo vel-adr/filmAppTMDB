@@ -138,7 +138,8 @@ extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowL
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let destination = MovieDetailVC()
-
+        destination.hidesBottomBarWhenPushed = true
+        
         if collectionView == popularCollectionView {
             destination.movieId = popularMovies[indexPath.row].id
         } else {
