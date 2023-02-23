@@ -9,11 +9,16 @@ import UIKit
 
 class FirstScreenVC: UIViewController {
     
+    var popularMovies: [Result] = []
+    var apiService = APIService()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
         setupSubViews()
+        apiService.popularDelegate = self
+        apiService.fetchPopular(query: "/movie/popular?language=en-US&page=1")
     }
     
     private func setupSubViews() {
@@ -112,18 +117,41 @@ class FirstScreenVC: UIViewController {
     }
 }
 
-extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
+extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, APIServiceGeneralMoviesDelegate {
+    func didUpdatePopularMovies(movies: [Result]) {
+        DispatchQueue.main.async {
+            self.popularMovies = movies
+            self.popularCollectionView.reloadData()
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == popularCollectionView {
+            let destination = MovieDetailVC()
+            destination.movieId = popularMovies[indexPath.row].id
+            
+            navigationController?.pushViewController(destination, animated: true)
+        }
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: collectionView.frame.width/3, height: collectionView.frame.width/2)
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        if collectionView == popularCollectionView {
+            return popularMovies.count
+        }
+        return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCell", for: indexPath) as? MovieCollectionViewCell
-        cell?.imageView.image = UIImage(named: "tes")
+        if collectionView == popularCollectionView {
+            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(popularMovies[indexPath.row].poster_path ?? "")")
+        } else {
+            cell?.imageView.image = UIImage(named: "tes")
+        }
         
         return cell ?? UICollectionViewCell()
     }

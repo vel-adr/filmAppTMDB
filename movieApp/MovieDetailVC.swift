@@ -9,6 +9,7 @@ import UIKit
 
 class MovieDetailVC: UIViewController {
     
+    var movieId: Int? = nil
     var apiService = APIService()
     var movieCasts: [CastResponse] = []
     
@@ -19,8 +20,8 @@ class MovieDetailVC: UIViewController {
         setupViews()
         setupConstraints()
         apiService.delegate = self
-        apiService.fetchData(query: "/movie/291805?api_key=04f99ab56e8a480fe907ad4fed4808aa&language=en-US")
-        apiService.fetchCast(query: "/movie/291805/credits?api_key=04f99ab56e8a480fe907ad4fed4808aa&language=en-US")
+        apiService.fetchData(query: "/movie/\(movieId ?? 0)?language=en-US")
+        apiService.fetchCast(query: "/movie/\(movieId ?? 0)/credits?language=en-US")
     }
     
     private func setupViews() {
