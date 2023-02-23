@@ -50,7 +50,7 @@ class MovieDetailVC: UIViewController {
             itemImage.topAnchor.constraint(equalTo: view.topAnchor),
             itemImage.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             itemImage.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            itemImage.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.4),
+            itemImage.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5),
             
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             scrollView.topAnchor.constraint(equalTo: itemImage.bottomAnchor),
@@ -75,7 +75,7 @@ class MovieDetailVC: UIViewController {
     //Elements
     lazy var itemImage: UIImageView = {
         let img = UIImageView()
-        img.contentMode = .scaleAspectFill
+        img.contentMode = .scaleAspectFit
         img.clipsToBounds = true
         img.image = UIImage(named: "tes")
         img.translatesAutoresizingMaskIntoConstraints = false
@@ -239,12 +239,16 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
     }
     
     func didUpdateMovie(movie: MovieDetailModel) {
+        let durationHour = movie.duration / 60
+        let durationMinute = movie.duration % 60
+        let durationString = "\(durationHour)h \(durationMinute)m"
+        
         DispatchQueue.main.async {
             self.itemImage.load(from: "https://image.tmdb.org/t/p/w500\(movie.poster_path)")
             self.titleLabel.text = movie.title
             self.releaseDateLabel.text = movie.releaseDate
             self.genreLabel.text = movie.genre
-            self.durationLabel.text = movie.duration
+            self.durationLabel.text = durationString
             self.overviewLabel.text = movie.overview
         }
     }

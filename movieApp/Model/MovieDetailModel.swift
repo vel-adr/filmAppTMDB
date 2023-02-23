@@ -13,6 +13,6 @@ struct MovieDetailModel {
     var title: String
     var releaseDate: String
     var genre: String
-    var duration: String
+    var duration: Int
     var overview: String
 }
