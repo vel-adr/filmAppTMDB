@@ -17,10 +17,15 @@ protocol APIServiceGeneralMoviesDelegate {
     func didUpdateTrendingMovies(movies: [Result])
 }
 
+protocol APIServiceSearchMovieDelegate {
+    func didUpdateSearchResult(result: [SearchResult])
+}
+
 class APIService {
     let baseURL = "https://api.themoviedb.org/3"
     var delegate: APIServiceDelegate?
     var popularDelegate: APIServiceGeneralMoviesDelegate?
+    var searchDelegate: APIServiceSearchMovieDelegate?
     
     private var apiKey: String {
         get {
@@ -161,6 +166,38 @@ class APIService {
                             }
                             
                             self.popularDelegate?.didUpdateTrendingMovies(movies: movies)
+                        }
+                        catch {
+                            print(error.localizedDescription)
+                        }
+                    }
+                }
+            }
+            task.resume()
+        }
+    }
+    
+    public func searchMovie(query: String) {
+        let urlString = baseURL + "/search/movie?query=\(query)&api_key=\(apiKey)"
+        
+        if let url = URL(string: urlString) {
+            let session = URLSession(configuration: .default)
+            let task = session.dataTask(with: url) { data, response, error in
+                if let error = error {
+                    print("Error fetching data. \(error.localizedDescription)")
+                    return
+                }
+                
+                if let data = data {
+                    DispatchQueue.main.async {
+                        do {
+                            let decoded = try JSONDecoder().decode(SearchMovieResponse.self, from: data)
+                            var results: [SearchResult] = []
+                            for item in decoded.results {
+                                results.append(item)
+                            }
+                            
+                            self.searchDelegate?.didUpdateSearchResult(result: results)
                         }
                         catch {
                             print(error.localizedDescription)
