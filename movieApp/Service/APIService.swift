@@ -22,11 +22,7 @@ protocol APIServiceSearchMovieDelegate {
 }
 
 class APIService {
-    let baseURL = "https://api.themoviedb.org/3"
-    var delegate: APIServiceDelegate?
-    var popularDelegate: APIServiceGeneralMoviesDelegate?
-    var searchDelegate: APIServiceSearchMovieDelegate?
-    
+    private let baseURL = "https://api.themoviedb.org/3"
     private var apiKey: String {
         get {
             guard let filePath = Bundle.main.path(forResource: "TMDB-Info", ofType: "plist") else {
@@ -45,167 +41,124 @@ class APIService {
         }
     }
     
-    public func fetchData(query: String) {
-        let urlString = baseURL + query + "&api_key=\(apiKey)"
+    var delegate: APIServiceDelegate?
+    var popularDelegate: APIServiceGeneralMoviesDelegate?
+    var searchDelegate: APIServiceSearchMovieDelegate?
+    
+    private func request<T: Codable>(path: String, decodeModel: T.Type, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+        guard let url = URL(string: path) else { return }
         
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    print("Error fetching data. \(error.localizedDescription)")
-                    return
-                }
-                
-                if let data = data {
-                    DispatchQueue.main.async {
-                        do {
-                            let decoded = try JSONDecoder().decode(MovieDetailResponse.self, from: data)
-                            lazy var genre: String = {
-                                var str = ""
-                                for item in decoded.genres {
-                                    str.append("\(item.name), ")
-                                }
-                                
-                                return String(str.dropLast(2))
-                            }()
-                            
-                            let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.poster_path ?? "", title: decoded.title, releaseDate: decoded.release_date, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
-                            self.delegate?.didUpdateMovie(movie: movie)
-                        }
-                        catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
             }
-            task.resume()
+            
+            guard let data = data else { return }
+            
+            do {
+                let decoded = try JSONDecoder().decode(decodeModel, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(decoded))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+    func fetchMovieDetail(movieID: Int) {
+        let path = "\(baseURL)/movie/\(movieID)?api_key=\(apiKey)&language=en-US"
+        
+        request(path: path, decodeModel: MovieDetailResponse.self) { [weak self] res in
+            switch res {
+            case .success(let decoded):
+                lazy var genre: String = {
+                    var str = ""
+                    for item in decoded.genres {
+                        str.append("\(item.name), ")
+                    }
+                    
+                    return String(str.dropLast(2))
+                }()
+                let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.poster_path ?? "", title: decoded.title, releaseDate: decoded.release_date, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
+                self?.delegate?.didUpdateMovie(movie: movie)
+                
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
     }
     
-    public func fetchCast(query: String) {
-        let urlString = baseURL + query + "&api_key=\(apiKey)"
+    public func fetchCast(movieID: Int) {
+        let path = "\(baseURL)/movie/\(movieID)/credits?api_key=\(apiKey)&language=en-US"
         
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    print("Error fetching data. \(error.localizedDescription)")
-                    return
+        request(path: path, decodeModel: MovieCastResponse.self) { [weak self] res in
+            switch res {
+            case .success(let decoded):
+                var casts: [CastResponse] = []
+                for item in decoded.cast {
+                    casts.append(item)
                 }
+                self?.delegate?.didUpdateCast(casts: casts)
                 
-                if let data = data {
-                    DispatchQueue.main.async {
-                        do {
-                            let decoded = try JSONDecoder().decode(MovieCastResponse.self, from: data)
-                            var casts: [CastResponse] = []
-                            for item in decoded.cast {
-                                casts.append(item)
-                            }
-                            self.delegate?.didUpdateCast(casts: casts)
-                        }
-                        catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-            task.resume()
         }
     }
     
     public func fetchPopular() {
-        let urlString = baseURL + "/movie/popular?language=en-US&page=1&api_key=\(apiKey)"
+        let path = baseURL + "/movie/popular?language=en-US&page=1&api_key=\(apiKey)"
         
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    print("Error fetching data. \(error.localizedDescription)")
-                    return
+        request(path: path, decodeModel: MovieResponse.self) { [weak self] res in
+            switch res {
+            case .success(let decoded):
+                var movies: [Result] = []
+                for item in decoded.results {
+                    movies.append(item)
                 }
+                self?.popularDelegate?.didUpdatePopularMovies(movies: movies)
                 
-                if let data = data {
-                    DispatchQueue.main.async {
-                        do {
-                            let decoded = try JSONDecoder().decode(MovieResponse.self, from: data)
-                            var movies: [Result] = []
-                            for item in decoded.results {
-                                movies.append(item)
-                            }
-                            
-                            self.popularDelegate?.didUpdatePopularMovies(movies: movies)
-                        }
-                        catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-            task.resume()
         }
     }
     
     public func fetchTrending() {
-        let urlString = baseURL + "/trending/movie/week?api_key=\(apiKey)"
+        let path = baseURL + "/trending/movie/week?api_key=\(apiKey)"
         
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    print("Error fetching data. \(error.localizedDescription)")
-                    return
-                }
+        request(path: path, decodeModel: MovieResponse.self) { [weak self] res in
+            switch res {
                 
-                if let data = data {
-                    DispatchQueue.main.async {
-                        do {
-                            let decoded = try JSONDecoder().decode(MovieResponse.self, from: data)
-                            var movies: [Result] = []
-                            for item in decoded.results {
-                                movies.append(item)
-                            }
-                            
-                            self.popularDelegate?.didUpdateTrendingMovies(movies: movies)
-                        }
-                        catch {
-                            print(error.localizedDescription)
-                        }
-                    }
+            case .success(let decoded):
+                var movies: [Result] = []
+                for item in decoded.results {
+                    movies.append(item)
                 }
+                self?.popularDelegate?.didUpdateTrendingMovies(movies: movies)
+                
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-            task.resume()
         }
     }
     
-    public func searchMovie(query: String) {
-        let urlString = baseURL + "/search/movie?query=\(query)&api_key=\(apiKey)"
+    public func searchMovie(searchQuery: String) {
+        let path = baseURL + "/search/movie?query=\(searchQuery)&api_key=\(apiKey)"
         
-        if let url = URL(string: urlString) {
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    print("Error fetching data. \(error.localizedDescription)")
-                    return
+        request(path: path, decodeModel: SearchMovieResponse.self) { [weak self] res in
+            switch res {
+            case .success(let decoded):
+                var results: [SearchResult] = []
+                for item in decoded.results {
+                    results.append(item)
                 }
+                self?.searchDelegate?.didUpdateSearchResult(result: results)
                 
-                if let data = data {
-                    DispatchQueue.main.async {
-                        do {
-                            let decoded = try JSONDecoder().decode(SearchMovieResponse.self, from: data)
-                            var results: [SearchResult] = []
-                            for item in decoded.results {
-                                results.append(item)
-                            }
-                            
-                            self.searchDelegate?.didUpdateSearchResult(result: results)
-                        }
-                        catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-            task.resume()
         }
     }
 }

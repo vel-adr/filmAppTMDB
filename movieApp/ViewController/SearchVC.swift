@@ -94,7 +94,7 @@ extension SearchVC: UISearchResultsUpdating, UITableViewDelegate, UITableViewDat
         
         if let query = searchBar.text {
             if !query.isEmpty {
-                api.searchMovie(query: query.replacingOccurrences(of: " ", with: "+"))
+                api.searchMovie(searchQuery: query.replacingOccurrences(of: " ", with: "+"))
             }
         }
     }

@@ -20,8 +20,8 @@ class MovieDetailVC: UIViewController {
         setupViews()
         setupConstraints()
         apiService.delegate = self
-        apiService.fetchData(query: "/movie/\(movieId ?? 0)?language=en-US")
-        apiService.fetchCast(query: "/movie/\(movieId ?? 0)/credits?language=en-US")
+        apiService.fetchMovieDetail(movieID: movieId ?? 0)
+        apiService.fetchCast(movieID: movieId ?? 0)
     }
     
     private func setupViews() {
