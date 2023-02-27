@@ -19,7 +19,8 @@ class TabBarVC: UITabBarController {
     func setupViewControllers() {
         viewControllers = [
             createNavController(for: FirstScreenVC(), title: "Dashboard", image: UIImage(systemName: "house") ?? UIImage()),
-            createNavController(for: SearchVC(), title: "Search", image: UIImage(systemName: "magnifyingglass") ?? UIImage())
+            createNavController(for: SearchVC(), title: "Search", image: UIImage(systemName: "magnifyingglass") ?? UIImage()),
+            createNavController(for: LoginVC(), title: "Account", image: UIImage(systemName: "person.fill") ?? UIImage())
         ]
     }
     

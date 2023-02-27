@@ -26,6 +26,7 @@
 		E96CB56429A7BDE200D5F6B7 /* SearchVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96CB56329A7BDE200D5F6B7 /* SearchVC.swift */; };
 		E97872D129A8BA6E00D9FEFD /* SearchResultTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97872D029A8BA6E00D9FEFD /* SearchResultTableViewCell.swift */; };
 		E97872D329A8C7D700D9FEFD /* SearchMovieResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97872D229A8C7D700D9FEFD /* SearchMovieResponse.swift */; };
+		E9844FBF29AB6E8C00E9B51C /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9844FBE29AB6E8C00E9B51C /* LoginVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		E96CB56329A7BDE200D5F6B7 /* SearchVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchVC.swift; sourceTree = "<group>"; };
 		E97872D029A8BA6E00D9FEFD /* SearchResultTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultTableViewCell.swift; sourceTree = "<group>"; };
 		E97872D229A8C7D700D9FEFD /* SearchMovieResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchMovieResponse.swift; sourceTree = "<group>"; };
+		E9844FBE29AB6E8C00E9B51C /* LoginVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +134,7 @@
 				E96CB56129A7BC6B00D5F6B7 /* TabBarVC.swift */,
 				E96226742989583300A9DCA8 /* MovieDetailVC.swift */,
 				E96226622987FE6B00A9DCA8 /* FirstScreenVC.swift */,
+				E9844FBE29AB6E8C00E9B51C /* LoginVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -221,6 +224,7 @@
 				E96226752989583300A9DCA8 /* MovieDetailVC.swift in Sources */,
 				E962267A298AAB0100A9DCA8 /* MovieDetailResponse.swift in Sources */,
 				E9622684298B3F8600A9DCA8 /* UIImageView+LoadFromURL.swift in Sources */,
+				E9844FBF29AB6E8C00E9B51C /* LoginVC.swift in Sources */,
 				E962265F2987FE6B00A9DCA8 /* AppDelegate.swift in Sources */,
 				E9622686298B79BC00A9DCA8 /* MovieCastResponse.swift in Sources */,
 				E96CB56429A7BDE200D5F6B7 /* SearchVC.swift in Sources */,
