@@ -10,7 +10,7 @@ import UIKit
 class MovieDetailVC: UIViewController {
     
     var movieId: Int? = nil
-    var apiService = APIService()
+    var api = APIService()
     var movieCasts: [CastResponse] = []
     
     override func viewDidLoad() {
@@ -19,9 +19,9 @@ class MovieDetailVC: UIViewController {
         view.backgroundColor = .systemBackground
         setupViews()
         setupConstraints()
-        apiService.delegate = self
-        apiService.fetchMovieDetail(movieID: movieId ?? 0)
-        apiService.fetchCast(movieID: movieId ?? 0)
+        api.delegate = self
+        api.fetchMovieDetail(movieID: movieId ?? 0)
+        api.fetchCast(movieID: movieId ?? 0)
     }
     
     private func setupViews() {

@@ -11,16 +11,16 @@ class FirstScreenVC: UIViewController {
     
     var popularMovies: [Result] = []
     var trendingMovies: [Result] = []
-    var apiService = APIService()
+    var api = APIService()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
         setupSubViews()
-        apiService.popularDelegate = self
-        apiService.fetchPopular()
-        apiService.fetchTrending()
+        api.popularDelegate = self
+        api.fetchPopular()
+        api.fetchTrending()
     }
     
     private func setupSubViews() {
