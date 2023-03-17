@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Alamofire
 
 protocol APIServiceDelegate {
     func didUpdateMovie(movie: MovieDetailModel)
@@ -48,22 +49,17 @@ class APIService {
     private func request<T: Codable>(path: String, decodeModel: T.Type, completion: @escaping(Swift.Result<T,Error>) -> Void) {
         guard let url = URL(string: path) else { return }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let decoded = try JSONDecoder().decode(decodeModel, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(decoded))
+        AF.request(url)
+            .validate()
+            .responseDecodable(of: decodeModel) { (response) in
+                if let err = response.error {
+                    completion(.failure(err))
                 }
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
+                
+                if let data = response.value {
+                    completion(.success(data))
+                }
+        }
     }
     
     func fetchMovieDetail(movieID: Int) {
@@ -80,7 +76,7 @@ class APIService {
                     
                     return String(str.dropLast(2))
                 }()
-                let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.poster_path ?? "", title: decoded.title, releaseDate: decoded.release_date, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
+                let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.posterPath ?? "", title: decoded.title, releaseDate: decoded.releaseDate, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
                 self?.delegate?.didUpdateMovie(movie: movie)
                 
             case .failure(let error):
