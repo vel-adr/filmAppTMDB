@@ -14,6 +14,11 @@ struct MovieCastResponse: Codable {
 
 struct CastResponse: Codable {
     var name: String
-    var profile_path: String?
+    var profilePath: String?
     var character: String
+    
+    enum CodingKeys: String, CodingKey {
+        case name, character
+        case profilePath = "profile_path"
+    }
 }

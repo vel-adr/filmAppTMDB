@@ -11,10 +11,17 @@ struct MovieDetailResponse: Codable {
     var genres: [Genre]
     var id: Int
     var overview: String?
-    var poster_path: String?
-    var release_date: String
+    var posterPath: String?
+    var releaseDate: String
     var runtime: Int?
     var title: String
+    
+    enum CodingKeys: String, CodingKey {
+        case genres, id, overview
+        case posterPath = "poster_path"
+        case releaseDate = "release_date"
+        case runtime, title
+    }
 }
 
 struct Genre: Codable {

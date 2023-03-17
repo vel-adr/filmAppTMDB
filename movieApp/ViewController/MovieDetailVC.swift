@@ -260,7 +260,7 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? CastCollectionViewCell {
-            cell.castImage.load(from: "https://image.tmdb.org/t/p/w500\(movieCasts[indexPath.row].profile_path ?? "")")
+            cell.castImage.load(from: "https://image.tmdb.org/t/p/w500\(movieCasts[indexPath.row].profilePath ?? "")")
             cell.castNameLabel.text = movieCasts[indexPath.row].name
             cell.characterNameLabel.text = movieCasts[indexPath.row].character
             

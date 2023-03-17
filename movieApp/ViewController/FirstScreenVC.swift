@@ -167,9 +167,9 @@ extension FirstScreenVC: UICollectionViewDelegate, UICollectionViewDelegateFlowL
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCell", for: indexPath) as? MovieCollectionViewCell
         
         if collectionView == popularCollectionView {
-            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(popularMovies[indexPath.row].poster_path ?? "")")
+            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(popularMovies[indexPath.row].posterPath ?? "")")
         } else if collectionView == trendingCollectionView {
-            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(trendingMovies[indexPath.row].poster_path ?? "")")
+            cell?.imageView.load(from: "https://image.tmdb.org/t/p/w500\(trendingMovies[indexPath.row].posterPath ?? "")")
         }
         
         return cell ?? UICollectionViewCell()
