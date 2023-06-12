@@ -70,6 +70,20 @@ class APIService {
         }
     }
     
+    private func post<T:Codable>(path: String, decodeModel: T.Type, params: Parameters?, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
+            .validate()
+            .responseDecodable(of: decodeModel) { (response) in
+                if let err = response.error {
+                    completion(.failure(err))
+                }
+                
+                if let data = response.value {
+                    completion(.success(data))
+                }
+            }
+    }
+    
     func fetchMovieDetail(movieID: Int) {
         let path = "\(baseURL)/movie/\(movieID)?api_key=\(apiKey)&language=en-US"
         
@@ -193,17 +207,16 @@ class APIService {
             "request_token": Auth.requestToken
         ]
         
-        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
-            .validate()
-            .responseDecodable(of: RequestTokenResponse.self) { (response) in
-                guard let data = response.value else {
-                    completionHandler(false, response.error)
-                    return
-                }
-                
+        post(path: path, decodeModel: RequestTokenResponse.self, params: params) { result in
+            switch result {
+            case .success(let data):
                 Auth.requestToken = data.requestToken
                 completionHandler(true, nil)
+                
+            case .failure(let err):
+                completionHandler(false, err)
             }
+        }
     }
     
     func createSession(completionHandler: @escaping (Bool, Error?) -> Void) {
@@ -212,17 +225,16 @@ class APIService {
             "request_token": Auth.requestToken
         ]
         
-        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
-            .validate()
-            .responseDecodable(of: CreateSessionResponse.self) { (response) in
-                guard let data = response.value else {
-                    completionHandler(false, response.error)
-                    return
-                }
-                
+        post(path: path, decodeModel: CreateSessionResponse.self, params: params) { result in
+            switch result {
+            case .success(let data):
                 Auth.sessionId = data.sessionId
                 completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
             }
+        }
     }
     
     func getCurrentUser(completionHandler: @escaping (Bool, Error?) -> Void) {
