@@ -51,7 +51,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+        
+        if components?.scheme == "movieapp" && components?.path == "authenticate" {
+            
+            guard let tabBarVC = window?.rootViewController as? UITabBarController else { return }
+            guard let navController = tabBarVC.viewControllers?[2] as? UINavigationController else { return }
+            guard let profileVC = navController.viewControllers.first as? ProfileVC else { return }
+            APIService().createSession(completionHandler: profileVC.handleSessionResponse(success:error:))
+        }
+    }
 
 }
 

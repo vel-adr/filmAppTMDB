@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import UIKit
 
 protocol APIServiceDelegate {
     func didUpdateMovie(movie: MovieDetailModel)
@@ -23,7 +24,14 @@ protocol APIServiceSearchMovieDelegate {
 }
 
 class APIService {
-    private let baseURL = "https://api.themoviedb.org/3"
+    
+    struct Auth {
+        static var User: CurrentUserResponse?
+        static var requestToken = ""
+        static var sessionId = ""
+    }
+    
+    let baseURL = "https://api.themoviedb.org/3"
     private var apiKey: String {
         get {
             guard let filePath = Bundle.main.path(forResource: "TMDB-Info", ofType: "plist") else {
@@ -156,5 +164,91 @@ class APIService {
                 print(error.localizedDescription)
             }
         }
+    }
+    
+    public func getRequestToken(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/token/new?api_key=\(apiKey)"
+        
+        request(path: path, decodeModel: RequestTokenResponse.self) { res in
+            switch res {
+            case .success(let decoded):
+                Auth.requestToken = decoded.requestToken
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func loginViaWebsiteRoute() -> String {
+        return "https://www.themoviedb.org/authenticate/\(Auth.requestToken)?redirect_to=movieapp:authenticate"
+    }
+    
+    func login(username: String, password: String, completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/token/validate_with_login?api_key=\(apiKey)"
+        let params: Parameters = [
+            "username": username,
+            "password": password,
+            "request_token": Auth.requestToken
+        ]
+        
+        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
+            .validate()
+            .responseDecodable(of: RequestTokenResponse.self) { (response) in
+                guard let data = response.value else {
+                    completionHandler(false, response.error)
+                    return
+                }
+                
+                Auth.requestToken = data.requestToken
+                completionHandler(true, nil)
+            }
+    }
+    
+    func createSession(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/session/new?api_key=\(apiKey)"
+        let params: Parameters = [
+            "request_token": Auth.requestToken
+        ]
+        
+        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
+            .validate()
+            .responseDecodable(of: CreateSessionResponse.self) { (response) in
+                guard let data = response.value else {
+                    completionHandler(false, response.error)
+                    return
+                }
+                
+                Auth.sessionId = data.sessionId
+                completionHandler(true, nil)
+            }
+    }
+    
+    func getCurrentUser(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/account?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: CurrentUserResponse.self) { res in
+            switch res {
+            case .success(let decoded):
+                Auth.User = decoded
+                completionHandler(true, nil)
+                
+            case .failure(let err):
+                completionHandler(false, err)
+            }
+        }
+    }
+    
+    func logOut(completionHandler: @escaping () -> Void) {
+        let path = baseURL + "/authentication/session?api_key=\(apiKey)"
+        AF.request(path, method: .delete, encoding: JSONEncoding.default, headers: nil)
+            .validate()
+            .responseData { response in
+                Auth.requestToken = ""
+                Auth.sessionId = ""
+                Auth.User = nil
+                completionHandler()
+            }
     }
 }
