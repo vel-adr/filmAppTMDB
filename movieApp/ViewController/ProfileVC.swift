@@ -37,11 +37,14 @@ class ProfileVC: UIViewController {
             
             view.addSubview(profilePicture)
             view.addSubview(usernameLabel)
+            view.addSubview(favoriteMoviesButton)
             view.addSubview(logOutButton)
         } else {
             profilePicture.removeFromSuperview()
             usernameLabel.removeFromSuperview()
+            favoriteMoviesButton.removeFromSuperview()
             logOutButton.removeFromSuperview()
+            
             
             usernameTextField.text = ""
             passwordTextField.text = ""
@@ -64,6 +67,11 @@ class ProfileVC: UIViewController {
                 
                 usernameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 usernameLabel.topAnchor.constraint(equalTo: profilePicture.bottomAnchor, constant: 40),
+                
+                favoriteMoviesButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                favoriteMoviesButton.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 40),
+                favoriteMoviesButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+                favoriteMoviesButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
                 
                 logOutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 logOutButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -195,6 +203,19 @@ class ProfileVC: UIViewController {
         
         return btn
     }()
+    
+    lazy private var favoriteMoviesButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle("Favorite Movies", for: .normal)
+        btn.setTitleColor(.white, for: .normal)
+        btn.layer.cornerRadius = 8
+        btn.backgroundColor = .systemRed
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        
+        btn.addTarget(self, action: #selector(seeFavoriteMovies), for: .touchUpInside)
+        
+        return btn
+    }()
 }
 
 extension ProfileVC {
@@ -222,15 +243,15 @@ extension ProfileVC {
                 DispatchQueue.main.async {
                     UIApplication.shared.open(URL(string: self.api.loginViaWebsiteRoute())!, options: [:], completionHandler: nil)
                 }
-
-//                DispatchQueue.main.async {
-//                    UIApplication.shared.open(URL(string: self.api.loginViaWebsiteRoute())!)
-//                }
             } else {
                 self.warningLabel.text = err?.localizedDescription
                 self.loginViaWebButton.isLoading = false
             }
         }
+    }
+    
+    @objc private func seeFavoriteMovies() {
+        navigationController?.pushViewController(FavoriteMoviesVC(), animated: true)
     }
     
     func handleRequestToken(success: Bool, error: Error?) {

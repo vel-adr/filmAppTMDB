@@ -54,10 +54,10 @@ class APIService {
     var popularDelegate: APIServiceGeneralMoviesDelegate?
     var searchDelegate: APIServiceSearchMovieDelegate?
     
-    private func request<T: Codable>(path: String, decodeModel: T.Type, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+    private func request<T: Codable>(path: String, decodeModel: T.Type, headers: HTTPHeaders? = nil, completion: @escaping(Swift.Result<T,Error>) -> Void) {
         guard let url = URL(string: path) else { return }
         
-        AF.request(url)
+        AF.request(url, headers: headers)
             .validate()
             .responseDecodable(of: decodeModel) { (response) in
                 if let err = response.error {
@@ -180,6 +180,28 @@ class APIService {
         }
     }
     
+    func getFavoriteMovies(completionHandler: @escaping ([SearchResult]?, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/favorite/movies?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: SearchMovieResponse.self) { result in
+            switch result {
+            case .success(let data):
+                print("sukses")
+                var movies: [SearchResult] = []
+                for movie in data.results {
+                    movies.append(movie)
+                }
+                completionHandler(movies, nil)
+                
+            case .failure(let error):
+                print("eror")
+                completionHandler(nil, error)
+            }
+        }
+    }
+    
+    // Auth
     public func getRequestToken(completionHandler: @escaping (Bool, Error?) -> Void) {
         let path = baseURL + "/authentication/token/new?api_key=\(apiKey)"
         

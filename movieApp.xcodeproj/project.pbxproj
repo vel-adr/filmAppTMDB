@@ -33,6 +33,7 @@
 		E997F31529C866F9003C4AF2 /* CreateSessionResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E997F31429C866F9003C4AF2 /* CreateSessionResponse.swift */; };
 		E9D684D32A30A42900AE0157 /* CurrentUserResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D684D22A30A42900AE0157 /* CurrentUserResponse.swift */; };
 		E9D684D52A30D8CF00AE0157 /* LoaderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D684D42A30D8CF00AE0157 /* LoaderButton.swift */; };
+		E9F527D72A378FB800D0992F /* FavoriteMoviesVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F527D62A378FB800D0992F /* FavoriteMoviesVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +64,7 @@
 		E997F31429C866F9003C4AF2 /* CreateSessionResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSessionResponse.swift; sourceTree = "<group>"; };
 		E9D684D22A30A42900AE0157 /* CurrentUserResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentUserResponse.swift; sourceTree = "<group>"; };
 		E9D684D42A30D8CF00AE0157 /* LoaderButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoaderButton.swift; sourceTree = "<group>"; };
+		E9F527D62A378FB800D0992F /* FavoriteMoviesVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteMoviesVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +154,7 @@
 				E96226742989583300A9DCA8 /* MovieDetailVC.swift */,
 				E96226622987FE6B00A9DCA8 /* FirstScreenVC.swift */,
 				E997F31029C8289F003C4AF2 /* ProfileVC.swift */,
+				E9F527D62A378FB800D0992F /* FavoriteMoviesVC.swift */,
 			);
 			path = ViewController;
 			sourceTree = "<group>";
@@ -261,6 +264,7 @@
 				E997F31129C8289F003C4AF2 /* ProfileVC.swift in Sources */,
 				E96226612987FE6B00A9DCA8 /* SceneDelegate.swift in Sources */,
 				E97872D129A8BA6E00D9FEFD /* SearchResultTableViewCell.swift in Sources */,
+				E9F527D72A378FB800D0992F /* FavoriteMoviesVC.swift in Sources */,
 				E962268A298B82AF00A9DCA8 /* MovieResponse.swift in Sources */,
 				E997F31529C866F9003C4AF2 /* CreateSessionResponse.swift in Sources */,
 				E962267F298AAE5600A9DCA8 /* APIService.swift in Sources */,
