@@ -34,6 +34,8 @@
 		E9D684D32A30A42900AE0157 /* CurrentUserResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D684D22A30A42900AE0157 /* CurrentUserResponse.swift */; };
 		E9D684D52A30D8CF00AE0157 /* LoaderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D684D42A30D8CF00AE0157 /* LoaderButton.swift */; };
 		E9F527D72A378FB800D0992F /* FavoriteMoviesVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F527D62A378FB800D0992F /* FavoriteMoviesVC.swift */; };
+		E9FC71E82A3862CA0092219A /* AddFavorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9FC71E72A3862CA0092219A /* AddFavorite.swift */; };
+		E9FC71EA2A3863540092219A /* TMDBResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9FC71E92A3863540092219A /* TMDBResponse.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +67,8 @@
 		E9D684D22A30A42900AE0157 /* CurrentUserResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentUserResponse.swift; sourceTree = "<group>"; };
 		E9D684D42A30D8CF00AE0157 /* LoaderButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoaderButton.swift; sourceTree = "<group>"; };
 		E9F527D62A378FB800D0992F /* FavoriteMoviesVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteMoviesVC.swift; sourceTree = "<group>"; };
+		E9FC71E72A3862CA0092219A /* AddFavorite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFavorite.swift; sourceTree = "<group>"; };
+		E9FC71E92A3863540092219A /* TMDBResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TMDBResponse.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +129,8 @@
 				E997F31229C85955003C4AF2 /* LoginRequest.swift */,
 				E997F31429C866F9003C4AF2 /* CreateSessionResponse.swift */,
 				E9D684D22A30A42900AE0157 /* CurrentUserResponse.swift */,
+				E9FC71E72A3862CA0092219A /* AddFavorite.swift */,
+				E9FC71E92A3863540092219A /* TMDBResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -256,6 +262,7 @@
 				E962265F2987FE6B00A9DCA8 /* AppDelegate.swift in Sources */,
 				E9D684D32A30A42900AE0157 /* CurrentUserResponse.swift in Sources */,
 				E9622686298B79BC00A9DCA8 /* MovieCastResponse.swift in Sources */,
+				E9FC71EA2A3863540092219A /* TMDBResponse.swift in Sources */,
 				E96CB56429A7BDE200D5F6B7 /* SearchVC.swift in Sources */,
 				E9622681298AB68B00A9DCA8 /* MovieDetailModel.swift in Sources */,
 				E96226772989923600A9DCA8 /* CastCollectionViewCell.swift in Sources */,
@@ -267,6 +274,7 @@
 				E9F527D72A378FB800D0992F /* FavoriteMoviesVC.swift in Sources */,
 				E962268A298B82AF00A9DCA8 /* MovieResponse.swift in Sources */,
 				E997F31529C866F9003C4AF2 /* CreateSessionResponse.swift in Sources */,
+				E9FC71E82A3862CA0092219A /* AddFavorite.swift in Sources */,
 				E962267F298AAE5600A9DCA8 /* APIService.swift in Sources */,
 				E9622673298903A800A9DCA8 /* MovieCollectionViewCell.swift in Sources */,
 			);

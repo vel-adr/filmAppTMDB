@@ -10,24 +10,16 @@ import UIKit
 class FavoriteMoviesVC: UIViewController {
     
     let api = APIService()
-    var movies: [SearchResult] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        api.getFavoriteMovies { movies, error in
-            if let movies = movies {
-                DispatchQueue.main.async {
-                    self.movies = movies
-                    self.moviesTableView.reloadData()
-                }
-            }
-            
-            if let error = error {
-                print(error.localizedDescription)
-            }
-        }
+        
         setupViews()
         setupConstraints()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        moviesTableView.reloadData()
     }
     
     private func setupViews() {
@@ -57,14 +49,18 @@ class FavoriteMoviesVC: UIViewController {
 
 extension FavoriteMoviesVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies.count
+        return APIService.UserData.favoriteMovies.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as? SearchResultTableViewCell
+        let movies = APIService.UserData.favoriteMovies
         
-        let imgURL = "https://image.tmdb.org/t/p/w500\(movies[indexPath.row].posterPath ?? "")"
-        cell?.resultImage.load(from: imgURL)
+        if let posterPath = movies[indexPath.row].posterPath {
+            let imgURL = "https://image.tmdb.org/t/p/w500\(posterPath)"
+            cell?.resultImage.load(from: imgURL)
+            cell?.setNeedsLayout()
+        }
         cell?.resultLabel.text = movies[indexPath.row].title
         
         return cell ?? UITableViewCell()
@@ -75,6 +71,8 @@ extension FavoriteMoviesVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let movies = APIService.UserData.favoriteMovies
+        
         let destination = MovieDetailVC()
         destination.movieId = movies[indexPath.row].id
         destination.hidesBottomBarWhenPushed = true

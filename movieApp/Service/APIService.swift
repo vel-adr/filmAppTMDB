@@ -31,6 +31,10 @@ class APIService {
         static var sessionId = ""
     }
     
+    struct UserData {
+        static var favoriteMovies: [SearchResult] = []
+    }
+    
     let baseURL = "https://api.themoviedb.org/3"
     private var apiKey: String {
         get {
@@ -70,8 +74,8 @@ class APIService {
         }
     }
     
-    private func post<T:Codable>(path: String, decodeModel: T.Type, params: Parameters?, completion: @escaping(Swift.Result<T,Error>) -> Void) {
-        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: nil)
+    private func post<T:Codable>(path: String, decodeModel: T.Type, headers: HTTPHeaders? = nil, params: Parameters?, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: headers)
             .validate()
             .responseDecodable(of: decodeModel) { (response) in
                 if let err = response.error {
@@ -180,24 +184,48 @@ class APIService {
         }
     }
     
-    func getFavoriteMovies(completionHandler: @escaping ([SearchResult]?, Error?) -> Void) {
+    func getFavoriteMovies(completionHandler: @escaping (Bool, Error?) -> Void) {
         guard let userId = Auth.User?.id else { return }
         let path = baseURL + "/account/\(userId)/favorite/movies?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
         
         request(path: path, decodeModel: SearchMovieResponse.self) { result in
             switch result {
             case .success(let data):
-                print("sukses")
-                var movies: [SearchResult] = []
+                UserData.favoriteMovies = []
                 for movie in data.results {
-                    movies.append(movie)
+                    UserData.favoriteMovies.append(movie)
                 }
-                completionHandler(movies, nil)
+                completionHandler(true, nil)
                 
             case .failure(let error):
-                print("eror")
-                completionHandler(nil, error)
+                completionHandler(false, error)
             }
+        }
+    }
+    
+    func addToFavorite(movieId: Int, isFavorite: Bool, completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/favorite?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        let bodyData = AddFavorite(mediaType: "movie", mediaId: movieId, favorite: isFavorite)
+        
+        do {
+            let jsonData = try JSONEncoder().encode(bodyData)
+            var request = try URLRequest(url: path, method: .post)
+            request.httpBody = jsonData
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            AF.request(request).responseDecodable(of: TMDBResponse.self) { response in
+                if let error = response.error {
+                    completionHandler(false, error)
+                }
+                
+                if let data = response.value {
+                    completionHandler(data.statusCode == 1 || data.statusCode == 12 || data.statusCode == 13, nil)
+                }
+            }
+        } catch let err {
+            completionHandler(false, err)
         }
     }
     

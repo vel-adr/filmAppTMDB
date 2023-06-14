@@ -10,8 +10,14 @@ import UIKit
 class MovieDetailVC: UIViewController {
     
     var movieId: Int? = nil
-    var api = APIService()
+    var posterPath: String? = nil
+    var movieTitle: String? = nil
+    
+    let api = APIService()
     var movieCasts: [CastResponse] = []
+    var isFavorite: Bool {
+        return APIService.UserData.favoriteMovies.contains(where: { $0.id == movieId })
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,6 +28,11 @@ class MovieDetailVC: UIViewController {
         api.delegate = self
         api.fetchMovieDetail(movieID: movieId ?? 0)
         api.fetchCast(movieID: movieId ?? 0)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        addToFavoriteButton.setImage(UIImage(systemName: isFavorite ? "heart.fill" : "heart", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
+        addToFavoriteButton.configuration?.subtitle = isFavorite ? "Remove from Favorite" : "Add to Favorite"
     }
     
     private func setupViews() {
@@ -38,6 +49,8 @@ class MovieDetailVC: UIViewController {
         itemInfoStackView.addArrangedSubview(genreLabel)
         itemInfoStackView.addArrangedSubview(stackSeparatorLabel2)
         itemInfoStackView.addArrangedSubview(durationLabel)
+        
+        containerView.addArrangedSubview(addToFavoriteButton)
 
         containerView.addArrangedSubview(overviewLabel)
         
@@ -229,6 +242,24 @@ class MovieDetailVC: UIViewController {
         
         return cv
     }()
+    
+    lazy var addToFavoriteButton: UIButton = {
+        var config = UIButton.Configuration.tinted()
+        config.buttonSize = .large
+        config.subtitle = isFavorite ? "Remove from Favorite" : "Add to Favorite"
+        config.titleAlignment = .center
+        config.baseForegroundColor = .black
+        config.baseBackgroundColor = .systemGray
+        config.image = UIImage(systemName: isFavorite ? "heart.fill" : "heart", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
+        config.imagePlacement = .top
+        config.imagePadding = 8
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(hierarchicalColor: .systemPink)
+        
+        let btn = UIButton(configuration: config)
+        btn.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
+        
+        return btn
+    }()
 }
 
 extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, APIServiceDelegate {
@@ -244,6 +275,9 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
         let durationMinute = movie.duration % 60
         let durationString = "\(durationHour)h \(durationMinute)m"
         
+        posterPath = movie.poster_path
+        movieTitle = movie.title
+        
         DispatchQueue.main.async {
             self.itemImage.load(from: "https://image.tmdb.org/t/p/w500\(movie.poster_path)")
             self.titleLabel.text = movie.title
@@ -251,6 +285,33 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
             self.genreLabel.text = movie.genre
             self.durationLabel.text = durationString
             self.overviewLabel.text = movie.overview
+        }
+    }
+    
+    @objc func favoriteButtonTapped() {
+        if APIService.Auth.User == nil {
+            tabBarController?.selectedIndex = 2
+        } else {
+            guard let movieId = movieId else { return }
+            api.addToFavorite(movieId: movieId, isFavorite: !isFavorite, completionHandler: handleAddToFavorite(success:error:))
+        }
+    }
+    
+    private func handleAddToFavorite(success: Bool, error: Error?) {
+        if success {
+            if isFavorite {
+                APIService.UserData.favoriteMovies = APIService.UserData.favoriteMovies.filter({ $0.id != movieId })
+            } else {
+                guard let movieId = movieId, let movieTitle = movieTitle else { return }
+                APIService.UserData.favoriteMovies.append(SearchResult(id: movieId, posterPath: posterPath, title: movieTitle))
+            }
+            
+            DispatchQueue.main.async {
+                self.addToFavoriteButton.setImage(UIImage(systemName: self.isFavorite ? "heart.fill" : "heart", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
+                self.addToFavoriteButton.configuration?.subtitle = self.isFavorite ? "Remove from Favorite" : "Add to Favorite"
+            }
+        } else {
+            print(error?.localizedDescription ?? "Failed adding movies to favorite list. Please try again")
         }
     }
     

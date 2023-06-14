@@ -251,7 +251,9 @@ extension ProfileVC {
     }
     
     @objc private func seeFavoriteMovies() {
-        navigationController?.pushViewController(FavoriteMoviesVC(), animated: true)
+        let destination = FavoriteMoviesVC()
+        destination.navigationItem.title = "Favorites"
+        navigationController?.pushViewController(destination, animated: true)
     }
     
     func handleRequestToken(success: Bool, error: Error?) {
@@ -285,6 +287,15 @@ extension ProfileVC {
     }
     
     func handleGetCurrentUser(success: Bool, error: Error?) {
+        if success {
+            api.getFavoriteMovies(completionHandler: handleGetFavoriteMovies(success:error:))
+        } else {
+            warningLabel.text = error?.localizedDescription
+            loginButton.isLoading = false
+        }
+    }
+    
+    func handleGetFavoriteMovies(success: Bool, error: Error?) {
         if success {
             DispatchQueue.main.async {
                 self.loginButton.isLoading = false
