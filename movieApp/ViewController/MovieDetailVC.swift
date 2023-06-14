@@ -18,6 +18,9 @@ class MovieDetailVC: UIViewController {
     var isFavorite: Bool {
         return APIService.UserData.favoriteMovies.contains(where: { $0.id == movieId })
     }
+    var isWatchlist: Bool {
+        return APIService.UserData.watchlistMovies.contains(where: { $0.id == movieId })
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,7 +35,10 @@ class MovieDetailVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         addToFavoriteButton.setImage(UIImage(systemName: isFavorite ? "heart.fill" : "heart", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
-        addToFavoriteButton.configuration?.subtitle = isFavorite ? "Remove from Favorite" : "Add to Favorite"
+        addToFavoriteButton.configuration?.attributedSubtitle = getSubtitleWithAttribute(text: isFavorite ? "Remove from Favorite" : "Add to Favorite")
+        
+        watchlistButton.setImage(UIImage(systemName: self.isWatchlist ? "bookmark.fill" : "bookmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
+        watchlistButton.configuration?.attributedSubtitle = getSubtitleWithAttribute(text: isWatchlist ? "Remove from Watchlist" : "Add to Watchlist")
     }
     
     private func setupViews() {
@@ -50,7 +56,9 @@ class MovieDetailVC: UIViewController {
         itemInfoStackView.addArrangedSubview(stackSeparatorLabel2)
         itemInfoStackView.addArrangedSubview(durationLabel)
         
-        containerView.addArrangedSubview(addToFavoriteButton)
+        containerView.addArrangedSubview(buttonStack)
+        buttonStack.addArrangedSubview(addToFavoriteButton)
+        buttonStack.addArrangedSubview(watchlistButton)
 
         containerView.addArrangedSubview(overviewLabel)
         
@@ -107,7 +115,7 @@ class MovieDetailVC: UIViewController {
         let cv = UIStackView()
         cv.axis = .vertical
         cv.spacing = 16
-        cv.alignment = .leading
+        cv.alignment = .fill
         cv.distribution = .fill
         cv.isLayoutMarginsRelativeArrangement = true
         cv.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
@@ -243,10 +251,21 @@ class MovieDetailVC: UIViewController {
         return cv
     }()
     
+    lazy var buttonStack: UIStackView = {
+       let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 16
+        stack.distribution = .fillProportionally
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        return stack
+    }()
+    
     lazy var addToFavoriteButton: UIButton = {
         var config = UIButton.Configuration.tinted()
         config.buttonSize = .large
-        config.subtitle = isFavorite ? "Remove from Favorite" : "Add to Favorite"
+        config.attributedSubtitle = getSubtitleWithAttribute(text: isFavorite ? "Remove from Favorite" : "Add to Favorite")
         config.titleAlignment = .center
         config.baseForegroundColor = .black
         config.baseBackgroundColor = .systemGray
@@ -257,6 +276,25 @@ class MovieDetailVC: UIViewController {
         
         let btn = UIButton(configuration: config)
         btn.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
+        
+        return btn
+    }()
+    
+    lazy var watchlistButton: UIButton = {
+        var config = UIButton.Configuration.tinted()
+        config.buttonSize = .large
+        
+        config.attributedSubtitle = getSubtitleWithAttribute(text: isWatchlist ? "Remove from Watchlist" : "Add to Watchlist")
+        config.titleAlignment = .center
+        config.baseForegroundColor = .black
+        config.baseBackgroundColor = .systemGray
+        config.image = UIImage(systemName: isWatchlist ? "bookmark.fill" : "bookmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20))
+        config.imagePlacement = .top
+        config.imagePadding = 8
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(hierarchicalColor: .systemYellow)
+        
+        let btn = UIButton(configuration: config)
+        btn.addTarget(self, action: #selector(watchlistButtonTapped), for: .touchUpInside)
         
         return btn
     }()
@@ -288,12 +326,28 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
         }
     }
     
+    private func getSubtitleWithAttribute(text: String) -> AttributedString {
+        var subtitleAttributeContainer = AttributeContainer()
+        subtitleAttributeContainer.font = UIFont.systemFont(ofSize: 12)
+        
+        return AttributedString(text, attributes: subtitleAttributeContainer)
+    }
+    
     @objc func favoriteButtonTapped() {
         if APIService.Auth.User == nil {
             tabBarController?.selectedIndex = 2
         } else {
             guard let movieId = movieId else { return }
             api.addToFavorite(movieId: movieId, isFavorite: !isFavorite, completionHandler: handleAddToFavorite(success:error:))
+        }
+    }
+    
+    @objc func watchlistButtonTapped() {
+        if APIService.Auth.User == nil {
+            tabBarController?.selectedIndex = 2
+        } else {
+            guard let movieId = movieId else { return }
+            api.addToWatchlist(movieId: movieId, isWatchlist: !isWatchlist, completionHandler: handleAddToWatchlist(success:error:))
         }
     }
     
@@ -308,10 +362,28 @@ extension MovieDetailVC: UICollectionViewDataSource, UICollectionViewDelegateFlo
             
             DispatchQueue.main.async {
                 self.addToFavoriteButton.setImage(UIImage(systemName: self.isFavorite ? "heart.fill" : "heart", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
-                self.addToFavoriteButton.configuration?.subtitle = self.isFavorite ? "Remove from Favorite" : "Add to Favorite"
+                self.addToFavoriteButton.configuration?.attributedSubtitle = self.getSubtitleWithAttribute(text: self.isFavorite ? "Remove from Favorite" : "Add to Favorite")
             }
         } else {
             print(error?.localizedDescription ?? "Failed adding movies to favorite list. Please try again")
+        }
+    }
+    
+    private func handleAddToWatchlist(success: Bool, error: Error?) {
+        if success {
+            if isWatchlist {
+                APIService.UserData.watchlistMovies = APIService.UserData.watchlistMovies.filter({ $0.id != movieId })
+            } else {
+                guard let movieId = movieId, let movieTitle = movieTitle else { return }
+                APIService.UserData.watchlistMovies.append(SearchResult(id: movieId, posterPath: posterPath, title: movieTitle))
+            }
+            
+            DispatchQueue.main.async {
+                self.watchlistButton.setImage(UIImage(systemName: self.isWatchlist ? "bookmark.fill" : "bookmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20)), for: .normal)
+                self.watchlistButton.configuration?.attributedSubtitle = self.getSubtitleWithAttribute(text: self.isWatchlist ? "Remove from Watchlist" : "Add to Watchlist")
+            }
+        } else {
+            print(error?.localizedDescription ?? "Failed adding movies to watchlist. Please try again")
         }
     }
     

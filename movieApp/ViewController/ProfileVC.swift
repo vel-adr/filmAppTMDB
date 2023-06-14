@@ -38,13 +38,14 @@ class ProfileVC: UIViewController {
             view.addSubview(profilePicture)
             view.addSubview(usernameLabel)
             view.addSubview(favoriteMoviesButton)
+            view.addSubview(watchlistMoviesButton)
             view.addSubview(logOutButton)
         } else {
             profilePicture.removeFromSuperview()
             usernameLabel.removeFromSuperview()
             favoriteMoviesButton.removeFromSuperview()
+            watchlistMoviesButton.removeFromSuperview()
             logOutButton.removeFromSuperview()
-            
             
             usernameTextField.text = ""
             passwordTextField.text = ""
@@ -72,6 +73,11 @@ class ProfileVC: UIViewController {
                 favoriteMoviesButton.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 40),
                 favoriteMoviesButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
                 favoriteMoviesButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+                
+                watchlistMoviesButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                watchlistMoviesButton.topAnchor.constraint(equalTo: favoriteMoviesButton.bottomAnchor, constant: 8),
+                watchlistMoviesButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+                watchlistMoviesButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
                 
                 logOutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 logOutButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -216,6 +222,19 @@ class ProfileVC: UIViewController {
         
         return btn
     }()
+    
+    lazy private var watchlistMoviesButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle("Watchlist Movies", for: .normal)
+        btn.setTitleColor(.white, for: .normal)
+        btn.layer.cornerRadius = 8
+        btn.backgroundColor = .systemRed
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        
+        btn.addTarget(self, action: #selector(seeWatchlistMovies), for: .touchUpInside)
+        
+        return btn
+    }()
 }
 
 extension ProfileVC {
@@ -253,6 +272,12 @@ extension ProfileVC {
     @objc private func seeFavoriteMovies() {
         let destination = FavoriteMoviesVC()
         destination.navigationItem.title = "Favorites"
+        navigationController?.pushViewController(destination, animated: true)
+    }
+    
+    @objc private func seeWatchlistMovies() {
+        let destination = WatchlistVC()
+        destination.navigationItem.title = "Watchlist"
         navigationController?.pushViewController(destination, animated: true)
     }
     
@@ -296,6 +321,15 @@ extension ProfileVC {
     }
     
     func handleGetFavoriteMovies(success: Bool, error: Error?) {
+        if success {
+            api.getWatchlistMovies(completionHandler: handleGetWatchlistMovies(success:error:))
+        } else {
+            warningLabel.text = error?.localizedDescription
+            loginButton.isLoading = false
+        }
+    }
+    
+    func handleGetWatchlistMovies(success: Bool, error: Error?) {
         if success {
             DispatchQueue.main.async {
                 self.loginButton.isLoading = false

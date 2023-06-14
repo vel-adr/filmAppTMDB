@@ -33,6 +33,7 @@ class APIService {
     
     struct UserData {
         static var favoriteMovies: [SearchResult] = []
+        static var watchlistMovies: [SearchResult] = []
     }
     
     let baseURL = "https://api.themoviedb.org/3"
@@ -207,6 +208,51 @@ class APIService {
         guard let userId = Auth.User?.id else { return }
         let path = baseURL + "/account/\(userId)/favorite?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
         let bodyData = AddFavorite(mediaType: "movie", mediaId: movieId, favorite: isFavorite)
+        
+        do {
+            let jsonData = try JSONEncoder().encode(bodyData)
+            var request = try URLRequest(url: path, method: .post)
+            request.httpBody = jsonData
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            AF.request(request).responseDecodable(of: TMDBResponse.self) { response in
+                if let error = response.error {
+                    completionHandler(false, error)
+                }
+                
+                if let data = response.value {
+                    completionHandler(data.statusCode == 1 || data.statusCode == 12 || data.statusCode == 13, nil)
+                }
+            }
+        } catch let err {
+            completionHandler(false, err)
+        }
+    }
+    
+    func getWatchlistMovies(completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/watchlist/movies?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: SearchMovieResponse.self) { result in
+            switch result {
+            case .success(let data):
+                UserData.watchlistMovies = []
+                for movie in data.results {
+                    UserData.watchlistMovies.append(movie)
+                }
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func addToWatchlist(movieId: Int, isWatchlist: Bool, completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/watchlist?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        let bodyData = AddWatchlist(mediaType: "movie", mediaId: movieId, isWatchlist: isWatchlist)
         
         do {
             let jsonData = try JSONEncoder().encode(bodyData)
