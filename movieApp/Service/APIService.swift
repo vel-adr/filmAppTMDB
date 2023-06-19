@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import Alamofire
+import UIKit
 
 protocol APIServiceDelegate {
     func didUpdateMovie(movie: MovieDetailModel)
@@ -22,7 +24,19 @@ protocol APIServiceSearchMovieDelegate {
 }
 
 class APIService {
-    private let baseURL = "https://api.themoviedb.org/3"
+    
+    struct Auth {
+        static var User: CurrentUserResponse?
+        static var requestToken = ""
+        static var sessionId = ""
+    }
+    
+    struct UserData {
+        static var favoriteMovies: [SearchResult] = []
+        static var watchlistMovies: [SearchResult] = []
+    }
+    
+    let baseURL = "https://api.themoviedb.org/3"
     private var apiKey: String {
         get {
             guard let filePath = Bundle.main.path(forResource: "TMDB-Info", ofType: "plist") else {
@@ -45,25 +59,34 @@ class APIService {
     var popularDelegate: APIServiceGeneralMoviesDelegate?
     var searchDelegate: APIServiceSearchMovieDelegate?
     
-    private func request<T: Codable>(path: String, decodeModel: T.Type, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+    private func request<T: Codable>(path: String, decodeModel: T.Type, headers: HTTPHeaders? = nil, completion: @escaping(Swift.Result<T,Error>) -> Void) {
         guard let url = URL(string: path) else { return }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let decoded = try JSONDecoder().decode(decodeModel, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(decoded))
+        AF.request(url, headers: headers)
+            .validate()
+            .responseDecodable(of: decodeModel) { (response) in
+                if let err = response.error {
+                    completion(.failure(err))
                 }
-            } catch {
-                completion(.failure(error))
+                
+                if let data = response.value {
+                    completion(.success(data))
+                }
+        }
+    }
+    
+    private func post<T:Codable>(path: String, decodeModel: T.Type, headers: HTTPHeaders? = nil, params: Parameters?, completion: @escaping(Swift.Result<T,Error>) -> Void) {
+        AF.request(path, method: .post, parameters: params, encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseDecodable(of: decodeModel) { (response) in
+                if let err = response.error {
+                    completion(.failure(err))
+                }
+                
+                if let data = response.value {
+                    completion(.success(data))
+                }
             }
-        }.resume()
     }
     
     func fetchMovieDetail(movieID: Int) {
@@ -80,7 +103,7 @@ class APIService {
                     
                     return String(str.dropLast(2))
                 }()
-                let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.poster_path ?? "", title: decoded.title, releaseDate: decoded.release_date, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
+                let movie = MovieDetailModel(id: decoded.id, poster_path: decoded.posterPath ?? "", title: decoded.title, releaseDate: decoded.releaseDate, genre: genre, duration: decoded.runtime ?? 0, overview: decoded.overview ?? "")
                 self?.delegate?.didUpdateMovie(movie: movie)
                 
             case .failure(let error):
@@ -160,5 +183,180 @@ class APIService {
                 print(error.localizedDescription)
             }
         }
+    }
+    
+    func getFavoriteMovies(completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/favorite/movies?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: SearchMovieResponse.self) { result in
+            switch result {
+            case .success(let data):
+                UserData.favoriteMovies = []
+                for movie in data.results {
+                    UserData.favoriteMovies.append(movie)
+                }
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func addToFavorite(movieId: Int, isFavorite: Bool, completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/favorite?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        let bodyData = AddFavorite(mediaType: "movie", mediaId: movieId, favorite: isFavorite)
+        
+        do {
+            let jsonData = try JSONEncoder().encode(bodyData)
+            var request = try URLRequest(url: path, method: .post)
+            request.httpBody = jsonData
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            AF.request(request).responseDecodable(of: TMDBResponse.self) { response in
+                if let error = response.error {
+                    completionHandler(false, error)
+                }
+                
+                if let data = response.value {
+                    completionHandler(data.statusCode == 1 || data.statusCode == 12 || data.statusCode == 13, nil)
+                }
+            }
+        } catch let err {
+            completionHandler(false, err)
+        }
+    }
+    
+    func getWatchlistMovies(completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/watchlist/movies?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: SearchMovieResponse.self) { result in
+            switch result {
+            case .success(let data):
+                UserData.watchlistMovies = []
+                for movie in data.results {
+                    UserData.watchlistMovies.append(movie)
+                }
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func addToWatchlist(movieId: Int, isWatchlist: Bool, completionHandler: @escaping (Bool, Error?) -> Void) {
+        guard let userId = Auth.User?.id else { return }
+        let path = baseURL + "/account/\(userId)/watchlist?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        let bodyData = AddWatchlist(mediaType: "movie", mediaId: movieId, isWatchlist: isWatchlist)
+        
+        do {
+            let jsonData = try JSONEncoder().encode(bodyData)
+            var request = try URLRequest(url: path, method: .post)
+            request.httpBody = jsonData
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            AF.request(request).responseDecodable(of: TMDBResponse.self) { response in
+                if let error = response.error {
+                    completionHandler(false, error)
+                }
+                
+                if let data = response.value {
+                    completionHandler(data.statusCode == 1 || data.statusCode == 12 || data.statusCode == 13, nil)
+                }
+            }
+        } catch let err {
+            completionHandler(false, err)
+        }
+    }
+    
+    // Auth
+    public func getRequestToken(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/token/new?api_key=\(apiKey)"
+        
+        request(path: path, decodeModel: RequestTokenResponse.self) { res in
+            switch res {
+            case .success(let decoded):
+                Auth.requestToken = decoded.requestToken
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func loginViaWebsiteRoute() -> String {
+        return "https://www.themoviedb.org/authenticate/\(Auth.requestToken)?redirect_to=movieapp:authenticate"
+    }
+    
+    func login(username: String, password: String, completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/token/validate_with_login?api_key=\(apiKey)"
+        let params: Parameters = [
+            "username": username,
+            "password": password,
+            "request_token": Auth.requestToken
+        ]
+        
+        post(path: path, decodeModel: RequestTokenResponse.self, params: params) { result in
+            switch result {
+            case .success(let data):
+                Auth.requestToken = data.requestToken
+                completionHandler(true, nil)
+                
+            case .failure(let err):
+                completionHandler(false, err)
+            }
+        }
+    }
+    
+    func createSession(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/authentication/session/new?api_key=\(apiKey)"
+        let params: Parameters = [
+            "request_token": Auth.requestToken
+        ]
+        
+        post(path: path, decodeModel: CreateSessionResponse.self, params: params) { result in
+            switch result {
+            case .success(let data):
+                Auth.sessionId = data.sessionId
+                completionHandler(true, nil)
+                
+            case .failure(let error):
+                completionHandler(false, error)
+            }
+        }
+    }
+    
+    func getCurrentUser(completionHandler: @escaping (Bool, Error?) -> Void) {
+        let path = baseURL + "/account?api_key=\(apiKey)&session_id=\(Auth.sessionId)"
+        
+        request(path: path, decodeModel: CurrentUserResponse.self) { res in
+            switch res {
+            case .success(let decoded):
+                Auth.User = decoded
+                completionHandler(true, nil)
+                
+            case .failure(let err):
+                completionHandler(false, err)
+            }
+        }
+    }
+    
+    func logOut(completionHandler: @escaping () -> Void) {
+        let path = baseURL + "/authentication/session?api_key=\(apiKey)"
+        AF.request(path, method: .delete, encoding: JSONEncoding.default, headers: nil)
+            .validate()
+            .responseData { response in
+                Auth.requestToken = ""
+                Auth.sessionId = ""
+                Auth.User = nil
+                completionHandler()
+            }
     }
 }

@@ -12,6 +12,11 @@ struct MovieResponse: Codable {
 }
 
 struct Result: Codable {
-    var poster_path: String?
+    var posterPath: String?
     var id: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case posterPath = "poster_path"
+        case id
+    }
 }
