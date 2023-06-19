@@ -25,6 +25,7 @@ class MovieDetailVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemBackground
         setupViews()
         setupConstraints()
@@ -42,11 +43,11 @@ class MovieDetailVC: UIViewController {
     }
     
     private func setupViews() {
-        view.addSubview(itemImage)
         view.addSubview(scrollView)
         
         scrollView.addSubview(containerView)
         
+        containerView.addArrangedSubview(itemImage)
         containerView.addArrangedSubview(titleStack)
         titleStack.addArrangedSubview(titleLabel)
         titleStack.addArrangedSubview(itemInfoStackView)
@@ -69,16 +70,11 @@ class MovieDetailVC: UIViewController {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            itemImage.topAnchor.constraint(equalTo: view.topAnchor),
-            itemImage.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            itemImage.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            itemImage.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.5),
-            
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            scrollView.topAnchor.constraint(equalTo: itemImage.bottomAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             scrollView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1),
 
             containerView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
@@ -86,6 +82,8 @@ class MovieDetailVC: UIViewController {
             containerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             containerView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, multiplier: 1),
+            
+            itemImage.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.4),
 
             castCollectionView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             castCollectionView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -20),
